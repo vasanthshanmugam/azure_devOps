@@ -1,11 +1,26 @@
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "2.40.0"
+    }
+  }
+}
+
 provider "azurerm" {
   features {}
+  
+  # Specify your subscription ID here
+ # subscription_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"  # Replace with your actual subscription ID
 }
 
-resource "azurerm_management_group" "example" {
-  display_name = "management-group"
-  name         = "mg-grp"
-}
+resource "azurerm_resource_group" "example_rg" {
+  name     = "example-resource-group"
+  location = "East US"
 
-# Placeholder for subscription creation logic
-# Note: Direct subscription creation via Terraform may require additional steps and permissions.
+  tags = {
+    Environment = "Production"
+    Owner       = "littleslaw"
+    Department  = "IT"
+  }
+}
