@@ -1,19 +1,22 @@
 name: 'Terraform Plan'
 
 on:
-  # This workflow will run on pushes or pull requests to the main branch
+  # The workflow will run on both pushes and pull requests, but we control concurrency
   push:
     branches:
       - main
   pull_request:
     branches:
       - main
-  workflow_dispatch:
+  workflow_dispatch: # Manual trigger
 
-# Workflow environment variables
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }} # Ensures only one workflow runs per branch
+  cancel-in-progress: true  # Cancels previous runs if a new one is triggered
+
 env:
-  TF_VERSION: '1.5.0' # Update to your Terraform version
-  TF_WORKING_DIR: './' # Directory where main.tf is located (root in this case)
+  TF_VERSION: '1.5.0'
+  TF_WORKING_DIR: './'
 
 jobs:
   terraform-plan:
@@ -31,7 +34,7 @@ jobs:
       with:
         terraform_version: ${{ env.TF_VERSION }}
 
-    # Step 3: Authenticate with Azure
+    # Step 3: Authenticate with Azure using a service principal
     - name: 'Azure Login'
       uses: azure/login@v1
       with:
