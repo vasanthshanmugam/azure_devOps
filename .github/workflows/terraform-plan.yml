@@ -1,6 +1,7 @@
-name: Terraform Plan
+name: 'Terraform Plan'
 
 on:
+  # This workflow will run on pushes or pull requests to the main branch
   push:
     branches:
       - main
@@ -8,27 +9,46 @@ on:
     branches:
       - main
 
+# Workflow environment variables
+env:
+  TF_VERSION: '1.5.0' # Update to your Terraform version
+  TF_WORKING_DIR: './' # Directory where main.tf is located (root in this case)
+
 jobs:
-  terraform_plan:
+  terraform-plan:
+    name: 'Terraform Plan'
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    # Step 1: Checkout the repository
+    - name: 'Checkout GitHub repository'
+      uses: actions/checkout@v3
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v4
-        with:
-          terraform_version: 2.40.0
+    # Step 2: Set up Terraform CLI
+    - name: 'Set up Terraform'
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
 
-      - name: Terraform Init
-        run: terraform init
+    # Step 3: Authenticate with Azure
+    - name: 'Azure Login'
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Terraform Plan
-        run: terraform plan
+    # Step 4: Initialize Terraform
+    - name: 'Terraform Init'
+      working-directory: ${{ env.TF_WORKING_DIR }}
+      run: terraform init
 
-        env:
-          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    # Step 5: Run Terraform Plan
+    - name: 'Terraform Plan'
+      working-directory: ${{ env.TF_WORKING_DIR }}
+      run: terraform plan
+
+    # Step 6: Upload plan as artifact (Optional)
+    - name: 'Upload Terraform Plan'
+      uses: actions/upload-artifact@v3
+      with:
+        name: terraform-plan
+        path: plan.out
